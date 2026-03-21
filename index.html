@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Focus</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a18; min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+    #app { font-family: 'DM Sans', sans-serif; width: 100%; max-width: 560px; }
+
+    .hero { background: #2C2C2A; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -30px; right: -30px; width: 140px; height: 140px; border-radius: 50%; background: rgba(226,75,74,0.18); }
+    .hero-date { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #888780; margin-bottom: 6px; }
+    .hero-msg { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: #F1EFE8; line-height: 1.05; margin-bottom: 0.5rem; }
+    .hero-sub { font-size: 13px; color: #888780; }
+
+    .streak-row { display: flex; gap: 10px; margin-bottom: 1rem; }
+    .streak-card { flex: 1; background: #242422; border: 0.5px solid #3a3a38; border-radius: 12px; padding: 0.85rem 1rem; }
+    .streak-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #888780; margin-bottom: 4px; }
+    .streak-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #E24B4A; line-height: 1; }
+    .streak-unit { font-size: 12px; color: #888780; margin-top: 2px; }
+
+    .section-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #888780; margin-bottom: 0.6rem; font-weight: 500; }
+
+    .progress-bar-wrap { background: #242422; border-radius: 8px; height: 8px; overflow: hidden; margin-bottom: 0.4rem; }
+    .progress-bar-fill { height: 100%; background: #E24B4A; border-radius: 8px; transition: width 0.4s; }
+    .progress-label { font-size: 12px; color: #888780; margin-bottom: 1rem; }
+
+    .tasks-box { background: #242422; border: 0.5px solid #3a3a38; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
+    .task-item { display: flex; align-items: center; gap: 12px; padding: 0.75rem 1rem; border-bottom: 0.5px solid #3a3a38; cursor: pointer; transition: background 0.15s; }
+    .task-item:last-child { border-bottom: none; }
+    .task-item:hover { background: #2e2e2c; }
+    .task-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #3a3a38; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .task-check.done { background: #E24B4A; border-color: #E24B4A; }
+    .task-check.done::after { content: ''; display: block; width: 8px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+    .task-text { font-size: 15px; color: #F1EFE8; flex: 1; }
+    .task-text.done { text-decoration: line-through; color: #5F5E5A; }
+    .task-del { font-size: 16px; color: #5F5E5A; opacity: 0; transition: opacity 0.15s; cursor: pointer; padding: 2px 6px; }
+    .task-item:hover .task-del { opacity: 1; }
+    .empty-msg { padding: 1.5rem; text-align: center; color: #5F5E5A; font-size: 14px; }
+
+    .add-row { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+    .add-input { flex: 1; height: 42px; border-radius: 10px; border: 0.5px solid #3a3a38; padding: 0 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: #242422; color: #F1EFE8; }
+    .add-input::placeholder { color: #5F5E5A; }
+    .add-input:focus { outline: none; border-color: #E24B4A; }
+    .add-btn { height: 42px; padding: 0 20px; border-radius: 10px; border: none; background: #E24B4A; color: #fff; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: opacity 0.15s; }
+    .add-btn:hover { opacity: 0.88; }
+
+    .dots-row { display: flex; gap: 6px; margin-top: 0.5rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a38; }
+    .dot.active { background: #E24B4A; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="hero">
+    <div class="hero-date" id="heroDate"></div>
+    <div class="hero-msg" id="heroMsg"></div>
+    <div class="hero-sub">Set your tasks. Own your day.</div>
+  </div>
+
+  <div class="streak-row">
+    <div class="streak-card">
+      <div class="streak-label">Current streak</div>
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-unit">days in a row</div>
+      <div class="dots-row" id="streakDots"></div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-label">Completed today</div>
+      <div class="streak-num" id="doneNum">0</div>
+      <div class="streak-unit" id="doneUnit">of 0 tasks</div>
+    </div>
+  </div>
+
+  <div class="section-label">Today's tasks</div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-label" id="progressLabel">0% complete</div>
+
+  <div class="tasks-box" id="tasksList">
+    <div class="empty-msg">No tasks yet — add one below and get after it.</div>
+  </div>
+
+  <div class="add-row">
+    <input class="add-input" id="taskInput" type="text" placeholder="What do you need to do today?" maxlength="80" />
+    <button class="add-btn" id="addBtn">Add</button>
+  </div>
+
+  <div class="section-label">Your week</div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="weekFill" style="width:0%"></div></div>
+  <div class="progress-label" id="weekLabel">0 of 7 days with completed tasks</div>
+</div>
+
+<script>
+  const QUOTES = [
+    "You don't rise to the occasion.\nYou fall to your habits.",
+    "Small steps every day.\nBig life over time.",
+    "Discipline is choosing\nwhat you want most.",
+    "Every action you take\nis a vote for who you are.",
+    "The secret is to start.\nEverything else follows.",
+    "Win the morning.\nWin the day.",
+    "You are what you do,\nnot what you say you'll do."
+  ];
+
+  function getKey(s) { return 'focusapp_' + s; }
+  function load(k, def) { try { const v = localStorage.getItem(getKey(k)); return v !== null ? JSON.parse(v) : def; } catch(e) { return def; } }
+  function save(k, v) { try { localStorage.setItem(getKey(k), JSON.stringify(v)); } catch(e) {} }
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  document.getElementById('heroDate').textContent = days[today.getDay()] + ', ' + months[today.getMonth()] + ' ' + today.getDate();
+  document.getElementById('heroMsg').innerHTML = QUOTES[today.getDay() % QUOTES.length].replace('\n','<br>');
+
+  let tasks = load('tasks_' + todayStr, []);
+  let history = load('history', {});
+
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function renderTasks() {
+    const list = document.getElementById('tasksList');
+    if (tasks.length === 0) {
+      list.innerHTML = '<div class="empty-msg">No tasks yet — add one below and get after it.</div>';
+    } else {
+      list.innerHTML = tasks.map((t,i) => `
+        <div class="task-item" onclick="toggleTask(${i})">
+          <div class="task-check${t.done?' done':''}"></div>
+          <span class="task-text${t.done?' done':''}">${escHtml(t.text)}</span>
+          <span class="task-del" onclick="event.stopPropagation();deleteTask(${i})">&#x2715;</span>
+        </div>`).join('');
+    }
+    const done = tasks.filter(t=>t.done).length;
+    const total = tasks.length;
+    const pct = total > 0 ? Math.round(done/total*100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = pct + '% complete';
+    document.getElementById('doneNum').textContent = done;
+    document.getElementById('doneUnit').textContent = 'of ' + total + ' task' + (total!==1?'s':'');
+    if (total > 0) history[todayStr] = { done, total };
+    else delete history[todayStr];
+    save('history', history);
+    renderStreak();
+  }
+
+  function toggleTask(i) { tasks[i].done = !tasks[i].done; save('tasks_'+todayStr, tasks); renderTasks(); }
+  function deleteTask(i) { tasks.splice(i,1); save('tasks_'+todayStr, tasks); renderTasks(); }
+
+  function addTask() {
+    const inp = document.getElementById('taskInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    tasks.push({ text, done: false });
+    save('tasks_'+todayStr, tasks);
+    inp.value = '';
+    renderTasks();
+  }
+
+  document.getElementById('addBtn').onclick = addTask;
+  document.getElementById('taskInput').onkeydown = e => { if (e.key==='Enter') addTask(); };
+
+  function renderStreak() {
+    let streak = 0;
+    const d = new Date(today);
+    while (true) {
+      const key = d.toISOString().slice(0,10);
+      const h = history[key];
+      if (h && h.done > 0) { streak++; d.setDate(d.getDate()-1); } else break;
+    }
+    document.getElementById('streakNum').textContent = streak;
+    const dots = document.getElementById('streakDots');
+    dots.innerHTML = '';
+    for (let i=6;i>=0;i--) {
+      const dd = new Date(today); dd.setDate(dd.getDate()-i);
+      const key = dd.toISOString().slice(0,10);
+      const h = history[key];
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (h && h.done>0 ? ' active' : '');
+      dots.appendChild(dot);
+    }
+    let weekDays = 0;
+    for (let i=6;i>=0;i--) {
+      const dd = new Date(today); dd.setDate(dd.getDate()-i);
+      const key = dd.toISOString().slice(0,10);
+      if (history[key]?.done > 0) weekDays++;
+    }
+    document.getElementById('weekFill').style.width = Math.round(weekDays/7*100)+'%';
+    document.getElementById('weekLabel').textContent = weekDays + ' of 7 days with completed tasks';
+  }
+
+  renderTasks();
+</script>
+</body>
+</html>
