@@ -13,7 +13,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 const CACHE = 'dailyfocus-v2';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = ['/daily-focus/', '/daily-focus/index.html', '/daily-focus/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
